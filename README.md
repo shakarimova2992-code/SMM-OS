@@ -1,21 +1,43 @@
-# SMM OS v0.3
+# SMM OS v0.4
 
-Frontend MVP for GitHub Pages.
+SMM OS — рабочая система для SMM: проекты, контент-фабрика, Reels, посты, Stories, контент-план и банк идей.
 
-## Files
-- `index.html`
-- `style.css`
-- `app.js`
+## Что изменилось
 
-## Deploy
-1. Create a GitHub repository, for example `smm-os`.
-2. Upload the three files to the repository root.
-3. Open **Settings → Pages**.
-4. Source: **Deploy from a branch**.
-5. Branch: `main`, folder: `/ (root)`.
-6. Save.
+В генераторах больше нет зашитых шаблонов. Reels, посты, Stories, Content Factory и Банк идей отправляют задачу в AI API и получают содержательный результат с учётом проекта, ниши, ЦА, tone of voice, цели и выбранного формата.
 
-## Important
-This version is a client-side MVP. Project data and content-plan data are stored in the user's browser via localStorage.
+AI-генерация реализована через серверную функцию `api/generate.js`. Секретный ключ OpenAI не попадает в браузер и не хранится в GitHub-коде.
 
-No private API keys are included. Real AI generation, authentication, payments and cloud storage should be connected through a backend/serverless function in a later stage; API keys must not be placed directly in GitHub Pages JavaScript.
+## Файлы
+
+- `index.html` — интерфейс
+- `style.css` — стили
+- `app.js` — логика интерфейса и вызовы AI
+- `api/generate.js` — безопасный серверный AI endpoint
+- `vercel.json` — настройки serverless-функции
+
+## Важно про GitHub Pages
+
+Старая версия могла работать как статический сайт на GitHub Pages, но настоящий AI API требует серверной функции. Поэтому для рабочей AI-версии проект нужно запускать на Vercel (или другом сервере, который поддерживает эту функцию).
+
+## Подключение AI
+
+На сервере нужно задать переменную окружения:
+
+`OPENAI_API_KEY=...`
+
+При необходимости можно переопределить модель:
+
+`OPENAI_MODEL=gpt-5.6`
+
+API-ключ нельзя вставлять в `app.js`, `index.html` или другие клиентские файлы.
+
+## Как работает генерация
+
+1. Пользователь создаёт проект и задаёт бизнес, нишу, ЦА и Tone of Voice.
+2. Выбирает конкретную задачу: Reels, пост, Stories, идеи или контент-сет.
+3. `app.js` отправляет контекст проекта и параметры задачи в `/api/generate`.
+4. Серверная функция обращается к OpenAI Responses API.
+5. Готовый текст возвращается в интерфейс.
+
+Генератор специально настроен против пустых универсальных фраз: AI должен выдавать конкретные hooks, тексты, сценарии, CTA и механики, а не повторять введённую тему в красивой карточке.
