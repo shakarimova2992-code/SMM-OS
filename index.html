@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMM OS — Content Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">S</div><div><strong>SMM OS</strong><small>CONTENT COMMAND CENTER</small></div></div>
+
+    <div class="project-switcher">
+      <span>ТЕКУЩИЙ ПРОЕКТ</span>
+      <button id="currentProjectButton" class="switcher-button" onclick="openProjectPicker()">Выберите проект <b>⌄</b></button>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-view="home"><span>⌂</span>Главная</button>
+      <button class="nav-item" data-view="content"><span>✦</span>Content Factory</button>
+      <button class="nav-item" data-view="reels"><span>▶</span>Reels Factory</button>
+      <button class="nav-item" data-view="posts"><span>Aa</span>Post Generator</button>
+      <button class="nav-item" data-view="stories"><span>◉</span>Stories</button>
+      <button class="nav-item" data-view="calendar"><span>▦</span>Контент-план</button>
+      <button class="nav-item" data-view="ideas"><span>✧</span>Банк идей</button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="pro-card">
+        <div class="pro-pill">PRO</div>
+        <strong>Больше контента,<br>меньше рутины.</strong>
+        <p>Безлимитные проекты и AI-инструменты.</p>
+        <button onclick="showToast('Оплата подключается следующим этапом.')">Попробовать PRO</button>
+      </div>
+      <button class="settings-button" onclick="showToast('Настройки появятся после подключения аккаунта.')">⚙ Настройки</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <p class="hello">SMM OS / <span id="headerProject">нет проекта</span></p>
+        <h1 id="pageTitle">Главная</h1>
+      </div>
+      <button class="top-action" onclick="openProjectModal()">＋ Новый проект</button>
+    </header>
+
+    <!-- HOME -->
+    <section class="view active" id="view-home">
+      <div id="homeEmpty" class="empty-panel">
+        <div class="empty-symbol">✦</div>
+        <p class="eyebrow">START HERE</p>
+        <h2>Создай рабочее пространство</h2>
+        <p>Один проект = вся SMM-система бренда в одном месте.</p>
+        <button class="primary" onclick="openProjectModal()">Создать первый проект →</button>
+      </div>
+
+      <div id="homeContent" class="hidden">
+        <div class="welcome-banner">
+          <div>
+            <p class="eyebrow">CONTENT COMMAND CENTER</p>
+            <h2 id="welcomeTitle">Твой контент начинается здесь.</h2>
+            <p>Выбери задачу — SMM OS соберёт структуру и подготовит результат.</p>
+          </div>
+          <button class="primary" onclick="navigate('content')">✦ Создать контент</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><span>Reels</span><strong id="statReels">0</strong><small>создано</small></div>
+          <div class="stat-card"><span>Посты</span><strong id="statPosts">0</strong><small>создано</small></div>
+          <div class="stat-card"><span>Stories</span><strong id="statStories">0</strong><small>создано</small></div>
+          <div class="stat-card"><span>Идеи</span><strong id="statIdeas">0</strong><small>сохранено</small></div>
+        </div>
+
+        <div class="section-head"><div><p class="eyebrow">QUICK CREATE</p><h2>Что создаём сегодня?</h2></div></div>
+        <div class="quick-grid">
+          <button class="quick-card" onclick="navigate('reels')"><i>▶</i><b>Reels</b><span>Hook → сценарий → CTA</span></button>
+          <button class="quick-card" onclick="navigate('posts')"><i>Aa</i><b>Пост</b><span>Текст под задачу бренда</span></button>
+          <button class="quick-card" onclick="navigate('stories')"><i>◉</i><b>Stories</b><span>Серия сторис с прогревом</span></button>
+          <button class="quick-card" onclick="navigate('calendar')"><i>▦</i><b>Контент-план</b><span>Публикации по дням</span></button>
+        </div>
+
+        <div class="section-head"><div><p class="eyebrow">PROJECTS</p><h2>Твои проекты</h2></div><button class="text-button" onclick="openProjectModal()">+ Добавить</button></div>
+        <div id="projectList" class="project-list"></div>
+      </div>
+    </section>
+
+    <!-- CONTENT FACTORY -->
+    <section class="view" id="view-content">
+      <div class="page-intro">
+        <p class="eyebrow">CONTENT FACTORY</p>
+        <h2>Собери контент под одну цель.</h2>
+        <p>Заполни контекст один раз и выбери, что нужно создать.</p>
+      </div>
+      <div class="factory-layout">
+        <form class="form-card" onsubmit="generateFactory(event)">
+          <label>Тема / продукт</label>
+          <input id="factoryTopic" placeholder="Например: осенний уход за кожей">
+          <label>Цель</label>
+          <select id="factoryGoal"><option>Привлечь клиентов</option><option>Продать продукт</option><option>Повысить доверие</option><option>Прогреть аудиторию</option><option>Повысить охваты</option></select>
+          <label>Форматы</label>
+          <div class="check-grid">
+            <label class="check"><input type="checkbox" id="factoryReels" checked> Reels</label>
+            <label class="check"><input type="checkbox" id="factoryPosts" checked> Посты</label>
+            <label class="check"><input type="checkbox" id="factoryStories" checked> Stories</label>
+          </div>
+          <button class="primary full" type="submit">Создать контент-сетку →</button>
+        </form>
+        <div id="factoryResult" class="result-card empty-result"><div class="result-icon">✦</div><h3>Результат появится здесь</h3><p>Система соберёт идеи на основе проекта и твоей задачи.</p></div>
+      </div>
+    </section>
+
+    <!-- REELS -->
+    <section class="view" id="view-reels">
+      <div class="page-intro"><p class="eyebrow">REELS FACTORY</p><h2>Сценарий, который можно снимать.</h2><p>Не просто идея — готовая структура короткого видео.</p></div>
+      <div class="generator-layout">
+        <form class="form-card" onsubmit="generateReel(event)">
+          <label>Тема Reels</label><input id="reelTopic" placeholder="Например: 3 ошибки в уходе за кожей" required>
+          <label>Цель</label><select id="reelGoal"><option>Привлечь клиентов</option><option>Продать</option><option>Экспертность</option><option>Охваты</option></select>
+          <label>Стиль</label><select id="reelStyle"><option>Экспертный</option><option>Разговорный</option><option>Динамичный</option><option>Эмоциональный</option><option>Премиальный</option></select>
+          <label>Длина</label><select id="reelLength"><option>15–20 секунд</option><option>30–40 секунд</option><option>45–60 секунд</option></select>
+          <button class="primary full" type="submit">Создать сценарий →</button>
+        </form>
+        <div id="reelResult" class="result-card empty-result"><div class="result-icon">▶</div><h3>Готовим твой Reels</h3><p>Заполни форму слева.</p></div>
+      </div>
+    </section>
+
+    <!-- POSTS -->
+    <section class="view" id="view-posts">
+      <div class="page-intro"><p class="eyebrow">POST GENERATOR</p><h2>Пост без пустого экрана.</h2><p>Структура, текст и призыв к действию в одном результате.</p></div>
+      <div class="generator-layout">
+        <form class="form-card" onsubmit="generatePost(event)">
+          <label>Тема</label><input id="postTopic" placeholder="Например: почему клиенты откладывают покупку" required>
+          <label>Тип</label><select id="postType"><option>Экспертный</option><option>Продающий</option><option>Личный</option><option>Образовательный</option><option>Вовлекающий</option></select>
+          <label>Tone of Voice</label><select id="postTone"><option>Дружелюбный</option><option>Уверенный</option><option>Премиальный</option><option>Живой и дерзкий</option></select>
+          <button class="primary full" type="submit">Создать пост →</button>
+        </form>
+        <div id="postResult" class="result-card empty-result"><div class="result-icon">Aa</div><h3>Текст появится здесь</h3><p>Добавь тему и выбери формат.</p></div>
+      </div>
+    </section>
+
+    <!-- STORIES -->
+    <section class="view" id="view-stories">
+      <div class="page-intro"><p class="eyebrow">STORIES</p><h2>Серия сторис на один экран.</h2><p>Строим последовательность: внимание → ценность → действие.</p></div>
+      <div class="generator-layout">
+        <form class="form-card" onsubmit="generateStories(event)">
+          <label>Тема / предложение</label><input id="storyTopic" placeholder="Например: новая услуга" required>
+          <label>Задача</label><select id="storyGoal"><option>Прогрев</option><option>Продажа</option><option>Доверие</option><option>Охват</option></select>
+          <label>Количество сторис</label><select id="storyCount"><option value="5">5</option><option value="7">7</option><option value="10">10</option></select>
+          <button class="primary full" type="submit">Создать серию →</button>
+        </form>
+        <div id="storyResult" class="result-card empty-result"><div class="result-icon">◉</div><h3>Серия появится здесь</h3><p>Добавь тему и задачу.</p></div>
+      </div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section class="view" id="view-calendar">
+      <div class="page-intro"><p class="eyebrow">CONTENT PLAN</p><h2>Контент должен выходить по плану.</h2><p>Добавляй публикации и отмечай готовность.</p></div>
+      <div class="calendar-toolbar"><button class="primary" onclick="openCalendarItemModal()">＋ Добавить публикацию</button><span id="calendarCount">0 публикаций</span></div>
+      <div id="calendarList" class="calendar-list"></div>
+    </section>
+
+    <!-- IDEAS -->
+    <section class="view" id="view-ideas">
+      <div class="page-intro"><p class="eyebrow">IDEA BANK</p><h2>Никогда не начинай с нуля.</h2><p>Генерируй идеи, сохраняй лучшие и возвращайся к ним.</p></div>
+      <div class="idea-toolbar"><select id="ideaCategory"><option>Все</option><option>Reels</option><option>Посты</option><option>Stories</option><option>Продажи</option><option>Экспертность</option></select><button class="primary" onclick="generateIdeas()">✦ Сгенерировать идеи</button></div>
+      <div id="ideaList" class="idea-grid"></div>
+    </section>
+  </main>
+</div>
+
+<!-- PROJECT MODAL -->
+<div id="projectModal" class="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeProjectModal()">×</button>
+    <p class="eyebrow">NEW PROJECT</p><h2>Создай рабочее пространство</h2><p class="modal-subtitle">Эти данные будут использоваться во всех инструментах SMM OS.</p>
+    <label>Название бизнеса</label><input id="projectName" placeholder="Например, Beauty Studio">
+    <label>Ниша</label><select id="projectNiche"><option value="">Выберите нишу</option><option>Салон красоты</option><option>Кафе / ресторан</option><option>Магазин одежды</option><option>Клиника</option><option>Личный бренд</option><option>Образование</option><option>Другое</option></select>
+    <label>Целевая аудитория</label><textarea id="projectAudience" placeholder="Например: женщины 25–45, Алматы"></textarea>
+    <label>Tone of Voice</label><select id="projectTone"><option>Дружелюбный</option><option>Уверенный</option><option>Премиальный</option><option>Живой и дерзкий</option></select>
+    <button class="primary full" onclick="createProject()">Создать проект →</button>
+  </div>
+</div>
+
+<!-- CALENDAR MODAL -->
+<div id="calendarModal" class="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeCalendarItemModal()">×</button>
+    <p class="eyebrow">CONTENT PLAN</p><h2>Добавить публикацию</h2>
+    <label>Дата</label><input type="date" id="calendarDate">
+    <label>Формат</label><select id="calendarType"><option>Reels</option><option>Пост</option><option>Stories</option></select>
+    <label>Тема</label><input id="calendarTopic" placeholder="Тема публикации">
+    <button class="primary full" onclick="addCalendarItem()">Добавить в план →</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
