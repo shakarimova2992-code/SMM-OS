@@ -80,9 +80,17 @@ async function generateAI(task,payload){
   }
 }
 
-function renderAIResult(elId,title,text,label){
+function renderAIResult(elId,title,result,label){
   const el=document.getElementById(elId); el.classList.remove("empty-result");
-  el.innerHTML=`<div class="result-header"><div><p class="eyebrow">${escapeHtml(label||"AI RESULT")}</p><h3>${escapeHtml(title)}</h3></div><button class="copy-btn" onclick="copyResult('${elId}')">Копировать</button></div><div class="ai-result-text">${formatAIText(text)}</div>`;
+  el.innerHTML=`<div class="result-header"><div><p class="eyebrow">${escapeHtml(label||"AI RESULT")}</p><h3>${escapeHtml(title)}</h3></div><button class="copy-btn" onclick="copyResult('${elId}')">Копировать</button></div><div class="ai-result-text">${renderStructuredResult(result)}</div>`;
+}
+function renderStructuredResult(result){
+  if(result && Array.isArray(result.ideas)) return result.ideas.map((x,i)=>`<article class="ai-idea"><div class="ai-idea-number">${i+1}</div><h4>${escapeHtml(x.title)}</h4><p><strong>Суть:</strong> ${escapeHtml(x.concept)}</p><p><strong>Hook:</strong> ${escapeHtml(x.hook)}</p><p><strong>Формат:</strong> ${escapeHtml(x.format)}</p><p><strong>Цель:</strong> ${escapeHtml(x.goal)}</p></article>`).join("");
+  if(result && Array.isArray(result.scenes)) return `<div class="ai-section"><h4>Концепция</h4><p>${escapeHtml(result.concept)}</p></div><div class="ai-section"><h4>Hook</h4><p>${escapeHtml(result.hook)}</p></div>${result.scenes.map((s,i)=>`<div class="ai-section"><h4>Сцена ${i+1}</h4><p><strong>Что снимаем:</strong> ${escapeHtml(s.action)}</p><p><strong>Говорим:</strong> ${escapeHtml(s.dialogue)}</p><p><strong>Текст на экране:</strong> ${escapeHtml(s.screen_text)}</p></div>`).join("")}<div class="ai-section"><h4>CTA</h4><p>${escapeHtml(result.cta)}</p></div>`;
+  if(result && result.post) return `<div class="ai-section"><h4>${escapeHtml(result.angle)}</h4><p><strong>${escapeHtml(result.headline)}</strong></p><div>${formatAIText(result.post)}</div><p><strong>CTA:</strong> ${escapeHtml(result.cta)}</p></div>`;
+  if(result && Array.isArray(result.stories)) return result.stories.map((s,i)=>`<div class="ai-section"><h4>Сторис ${i+1} — ${escapeHtml(s.role)}</h4><p><strong>Визуал:</strong> ${escapeHtml(s.visual)}</p><p><strong>Текст:</strong> ${escapeHtml(s.text)}</p><p><strong>Интерактив:</strong> ${escapeHtml(s.interaction||"—")}</p></div>`).join("");
+  if(result && Array.isArray(result.formats)) return result.formats.map(f=>`<div class="ai-section"><h4>${escapeHtml(f.format)}</h4><p><strong>Угол:</strong> ${escapeHtml(f.angle)}</p><div>${formatAIText(f.content)}</div></div>`).join("");
+  return formatAIText(typeof result==="string"?result:JSON.stringify(result,null,2));
 }
 function formatAIText(text){
   return escapeHtml(text).replace(/^###\s*(.+)$/gm,"<h4>$1</h4>").replace(/^##\s*(.+)$/gm,"<h3>$1</h3>").replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/^\s*[-•]\s+(.+)$/gm,"<div class=\"ai-bullet\">• $1</div>").replace(/\n{2,}/g,"<br><br>").replace(/\n/g,"<br>");
