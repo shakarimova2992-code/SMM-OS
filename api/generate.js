@@ -1,5 +1,13 @@
 const MODEL = process.env.OPENAI_MODEL || "gpt-5.6";
 
+const SCHEMAS = {
+  reels:{type:"object",additionalProperties:false,properties:{concept:{type:"string"},hook:{type:"string"},scenes:{type:"array",items:{type:"object",additionalProperties:false,properties:{action:{type:"string"},dialogue:{type:"string"},screen_text:{type:"string"}},required:["action","dialogue","screen_text"]}},cta:{type:"string"}},required:["concept","hook","scenes","cta"]},
+  post:{type:"object",additionalProperties:false,properties:{angle:{type:"string"},headline:{type:"string"},post:{type:"string"},cta:{type:"string"}},required:["angle","headline","post","cta"]},
+  stories:{type:"object",additionalProperties:false,properties:{stories:{type:"array",items:{type:"object",additionalProperties:false,properties:{role:{type:"string"},visual:{type:"string"},text:{type:"string"},interaction:{type:"string"}},required:["role","visual","text","interaction"]}}},required:["stories"]},
+  ideas:{type:"object",additionalProperties:false,properties:{ideas:{type:"array",items:{type:"object",additionalProperties:false,properties:{title:{type:"string"},concept:{type:"string"},hook:{type:"string"},format:{type:"string"},goal:{type:"string"}},required:["title","concept","hook","format","goal"]}}},required:["ideas"]},
+  content_factory:{type:"object",additionalProperties:false,properties:{formats:{type:"array",items:{type:"object",additionalProperties:false,properties:{format:{type:"string"},angle:{type:"string"},content:{type:"string"}},required:["format","angle","content"]}}},required:["formats"]}
+};
+
 const TASKS = {
   reels: `Ты создаёшь не «описание Reels», а съёмочный сценарий для SMM-команды.
 Сначала выбери конкретную маркетинговую механику, которая подходит теме и цели: демонстрация продукта, сравнение, ошибка, миф, тест, реакция, мини-история, кейс, подборка, возражение, behind the scenes или другая уместная механика.
@@ -92,11 +100,12 @@ ${TASKS[task]}
 
 Верни только готовый результат по заданному формату.`;
 
-    const response=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${process.env.OPENAI_API_KEY}`},body:JSON.stringify({model:MODEL,instructions:prompt,input:"Создай результат сейчас. Не задавай уточняющих вопросов.",store:false})});
+    const response=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${process.env.OPENAI_API_KEY}`},body:JSON.stringify({model:MODEL,instructions:prompt,input:"Создай результат сейчас. Не задавай уточняющих вопросов.",store:false,text:{format:{type:"json_schema",name:`smm_${task}`,strict:true,schema:SCHEMAS[task]}}})});
     const data=await response.json();
     if(!response.ok) return json(res,response.status,{error:data?.error?.message||"OpenAI API вернул ошибку."});
-    const text=data.output_text||(data.output||[]).flatMap(x=>x.content||[]).filter(x=>x.type==="output_text").map(x=>x.text).join("\n");
-    if(!text) return json(res,502,{error:"AI не вернул текстовый результат."});
-    return json(res,200,{text});
+    const text=data.output_text;
+    if(!text) return json(res,502,{error:"AI не вернул структурированный результат."});
+    let result; try{result=JSON.parse(text);}catch(e){return json(res,502,{error:"AI вернул некорректную структуру данных."});}
+    return json(res,200,{result});
   }catch(error){ console.error(error); return json(res,500,{error:"Не удалось связаться с AI-сервисом. Проверь подключение и настройки сервера."}); }
 }
