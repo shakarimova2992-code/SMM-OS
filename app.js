@@ -71,8 +71,8 @@ async function generateAI(task,payload){
     const res=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({task,project:projectContext(),...payload})});
     const data=await res.json().catch(()=>({}));
     if(!res.ok) throw new Error(data.error||`Ошибка AI (${res.status})`);
-    if(!data.text) throw new Error("AI не вернул текст");
-    return data.text.trim();
+    if(!data.result) throw new Error("AI не вернул структурированный результат");
+    return data.result;
   }catch(err){
     console.error(err); showToast(err.message||"Не удалось получить ответ AI"); throw err;
   }finally{
@@ -110,13 +110,12 @@ async function generateFactory(e){
 async function generateIdeas(){
   const p=currentProject();if(!p)return; const category=document.getElementById("ideaCategory").value;
   try{
-    const text=await generateAI("ideas",{category,count:10});
+    const result=await generateAI("ideas",{category,count:10});
     const arr=state.ideas[p.id]||[];
-    const lines=text.split("\n").map(x=>x.trim()).filter(Boolean).filter(x=>/^\d+[.)]/.test(x));
-    const ideas=(lines.length?lines:[text]).map((line,i)=>{
-      const clean=line.replace(/^\d+[.)]\s*/,""); const parts=clean.split(" — ");
-      return {id:Date.now()+i+Math.random(),category:category==="Все"?"AI":category,title:parts[0].slice(0,140),details:parts.slice(1).join(" — ")||clean,saved:false};
-    });
+    const ideas=(result.ideas||[]).map((item,i)=>({
+      id:Date.now()+i+Math.random(), category:category==="Все"?"AI":category,
+      title:item.title, details:item.concept, hook:item.hook, format:item.format, goal:item.goal, saved:false
+    }));
     state.ideas[p.id]=[...ideas,...arr].slice(0,50);save();renderIdeas();renderHome();showToast("AI создал новые идеи ✦");
   }catch(_){ }
 }
@@ -124,7 +123,7 @@ function renderIdeas(){
   const p=currentProject();if(!p)return; const cat=document.getElementById("ideaCategory").value,arr=(state.ideas[p.id]||[]).filter(x=>cat==="Все"||x.category===cat||x.category==="AI");
   const list=document.getElementById("ideaList");list.innerHTML="";
   if(!arr.length){list.innerHTML=`<div class="empty-panel" style="grid-column:1/-1;padding:65px 20px"><div class="empty-symbol">✧</div><h2>Банк идей пуст</h2><p>Нажми «Сгенерировать идеи».</p></div>`;return}
-  arr.forEach(item=>{const el=document.createElement("div");el.className="idea-card";el.innerHTML=`<div class="idea-card-top"><span class="idea-category">${escapeHtml(item.category.toUpperCase())}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.details||"")}</p><button onclick="saveIdea(${item.id})">${item.saved?"✓ Сохранено":"♡ Сохранить"}</button>`;list.appendChild(el)});
+  arr.forEach(item=>{const el=document.createElement("div");el.className="idea-card";el.innerHTML=`<div class="idea-card-top"><span class="idea-category">${escapeHtml(item.category.toUpperCase())}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.details||"")}</p>${item.hook?`<p><strong>Hook:</strong> ${escapeHtml(item.hook)}</p>`:""}${item.format?`<p><strong>Формат:</strong> ${escapeHtml(item.format)}</p>`:""}<button onclick="saveIdea(${item.id})">${item.saved?"✓ Сохранено":"♡ Сохранить"}</button>`;list.appendChild(el)});
 }
 function saveIdea(id){const p=currentProject(),arr=state.ideas[p.id]||[],item=arr.find(x=>x.id===id);if(item)item.saved=!item.saved;save();renderIdeas();renderHome();showToast(item?.saved?"Идея сохранена":"Идея убрана")}
 
